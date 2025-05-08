@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Place a Bid - Auction System</title>
+</head>
+<body>
+  <h2>Place a Bid</h2>
+
+  <input id="bidAmount" type="number" placeholder="Your Bid" /><br><br>
+  <input id="bidProductId" type="number" placeholder="Product ID" /><br><br>
+  <input id="bidUserId" type="number" placeholder="Your User ID" /><br><br>
+  <button id="placeBidBtn">Place Bid</button>
+
+  <script>
+    document.getElementById('placeBidBtn').addEventListener('click', async () => {
+      const amount = parseFloat(document.getElementById('bidAmount').value);
+      const product_id = parseInt(document.getElementById('bidProductId').value);
+      const user_id = parseInt(document.getElementById('bidUserId').value);
+
+      try {
+        const response = await fetch('http://localhost:5002/api/bids', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, product_id, user_id }),
+        });
+
+        const data = await response.json();
+        alert(data.message || data.error || "Bid placed");
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error placing bid.');
+      }
+    });
+  </script>
+</body>
+</html>

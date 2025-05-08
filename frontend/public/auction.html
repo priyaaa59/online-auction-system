@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auction - Auction System</title>
+  <style>
+    /* Add your custom styles here */
+    body {
+      font-family: Arial, sans-serif;
+      background: url('your-background-image.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+    .auction-container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+    .product-item {
+      margin: 20px 0;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+    }
+    .product-item h3 {
+      margin: 0;
+    }
+    .bid-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .bid-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auction-container">
+    <h2>Welcome to the Auction</h2>
+    <h3>Products Available for Bidding</h3>
+
+    <div id="auctionItems"></div> <!-- Auction items will be displayed here -->
+
+    <button id="logoutBtn">Logout</button>
+  </div>
+
+  <script>
+    // Ensure the user is logged in (checking if there's a token in localStorage)
+    if (!localStorage.getItem('authToken')) {
+      alert('You are not logged in. Please log in first.');
+      window.location.href = 'login.html'; // Redirect to login if not logged in
+    }
+
+    // Fetch auction items after the user has logged in
+    async function fetchAuctionItems() {
+      try {
+        const response = await fetch('http://localhost:5002/api/products', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        if (data && data.length > 0) {
+          displayAuctionItems(data);
+        } else {
+          alert('No auction items available.');
+        }
+      } catch (error) {
+        console.error('Error fetching auction items:', error);
+        alert('Failed to load auction items.');
+      }
+    }
+
+    // Display auction items
+    function displayAuctionItems(items) {
+      const auctionItemsContainer = document.getElementById('auctionItems');
+      auctionItemsContainer.innerHTML = '';
+
+      items.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.classList.add('product-item');
+        itemElement.innerHTML = `
+          <h3>${item.title}</h3>
+          <p>${item.description}</p>
+          <p>Starting Price: $${item.starting_price}</p>
+          <p>End Time: ${new Date(item.end_time).toLocaleString()}</p>
+          <button class="bid-btn" onclick="placeBid(${item.id})">Place Bid</button>
+        `;
+        auctionItemsContainer.appendChild(itemElement);
+      });
+    }
+
+    // Place a bid function
+    async function placeBid(productId) {
+      const bidAmount = prompt('Enter your bid amount:');
+      if (bidAmount) {
+        const response = await fetch('http://localhost:5002/api/bids', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          },
+          body: JSON.stringify({
+            amount: parseFloat(bidAmount),
+            product_id: productId,
+            user_id: localStorage.getItem('userId'), // Assuming you store userId in localStorage
+          }),
+        });
+        const data = await response.json();
+        alert(data.message || data.error || 'Bid placed successfully!');
+      } else {
+        alert('Please enter a valid bid amount.');
+      }
+    }
+
+    // Logout function
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userId'); // Clear userId (if saved)
+      window.location.href = 'login.html'; // Redirect to login page after logout
+    });
+
+    // Fetch auction items when the page loads
+    fetchAuctionItems();
+  </script>
+
+</body>
+</html>

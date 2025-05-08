@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Place a Bid</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+
+    .form-box {
+      max-width: 400px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-box">
+    <h2>Place Your Bid</h2>
+    <input type="number" id="bidAmount" placeholder="Enter your bid amount" />
+    <input type="number" id="userId" placeholder="Enter your User ID" />
+    <button onclick="submitBid()">Submit Bid</button>
+  </div>
+
+  <script>
+    // Retrieve the user ID from localStorage
+    const userId = localStorage.getItem('userId');
+
+    // Check if userId exists. If not, redirect to login page
+    if (!userId) {
+      alert('You must be logged in to place a bid.');
+      window.location.href = 'login.html'; // Redirect to login page
+    }
+
+    // If needed, display the userId for debugging purposes (optional)
+    console.log("Logged in user ID:", userId);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('product_id');
+
+    async function submitBid() {
+      const amount = parseFloat(document.getElementById('bidAmount').value);
+      const user_id = userId; // Use the user ID from localStorage
+
+      const response = await fetch('http://localhost:5002/api/bids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, product_id: parseInt(productId), user_id }),
+      });
+
+      const data = await response.json();
+      alert(data.message || data.error || 'Bid placed');
+
+      // Optional: Redirect back to auction page
+      window.location.href = 'auction.html';
+    }
+  </script>
+
+</body>
+</html>

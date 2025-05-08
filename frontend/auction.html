@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction Page</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link your CSS or Bootstrap -->
+</head>
+<body>
+    <div id="header">
+        <h1>Welcome to the Auction</h1>
+        <button id="logoutBtn">Log Out</button> <!-- Logout button -->
+    </div>
+
+    <h2>Auction Items</h2>
+    <div id="auctionList"> <!-- List where auction items will be displayed -->
+        <!-- Auction items will be injected here by JavaScript -->
+    </div>
+
+    <!-- Bidding Section (Example) -->
+    <div id="bidSection">
+        <h3>Place Your Bid</h3>
+        <form id="bidForm">
+            <input type="hidden" id="itemId" />
+            <label for="bidAmount">Bid Amount:</label>
+            <input type="number" id="bidAmount" placeholder="Enter bid amount" required>
+            <button type="button" id="bidBtn">Place Bid</button>
+        </form>
+    </div>
+
+    <script>
+        // Check if the user is logged in by looking for a token in localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';  // Redirect to login page if not logged in
+        }
+
+        // Fetch auction items from the backend
+        fetch('/api/products')  // Replace with your actual API endpoint for auction items
+            .then(response => response.json())
+            .then(data => {
+                console.log('Auction items:', data);
+
+                const auctionList = document.getElementById('auctionList');
+                
+                // Assuming data is an array of auction items
+                data.forEach(item => {
+                    const productContainer = document.createElement('div');
+                    productContainer.classList.add('product');
+
+                    // Adding product image, title, description, price, end time, and bid button
+                    productContainer.innerHTML = `
+                        <img src="${item.image_url}" alt="${item.title}" style="width:100%; max-height:200px; object-fit:cover;" />
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        <p><strong>Starting Price:</strong> ₹${item.starting_price}</p>
+                        <p><strong>End Time:</strong> ${new Date(item.end_time).toLocaleString()}</p>
+                        <button onclick="placeBid('${item.id}')">Place Bid</button>
+                    `;
+
+                    auctionList.appendChild(productContainer);
+
+                    // Store the itemId in the hidden field when item is clicked (Optional)
+                    productContainer.addEventListener('click', () => {
+                        document.getElementById('itemId').value = item.id; // Assuming each item has a unique id
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching auction items:', error);
+            });
+
+        // Handle bid submission
+        document.getElementById('bidBtn').addEventListener('click', () => {
+            const itemId = document.getElementById('itemId').value;
+            const bidAmount = document.getElementById('bidAmount').value;
+
+            if (!itemId || !bidAmount) {
+                alert('Please select an item and enter a bid amount.');
+                return;
+            }
+
+            // Make a request to place the bid
+            fetch('/api/place-bid', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`  // Send the token in Authorization header
+                },
+                body: JSON.stringify({
+                    itemId: itemId,
+                    bidAmount: bidAmount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Bid placed successfully');
+                } else {
+                    alert('Failed to place bid');
+                }
+            })
+            .catch(error => {
+                console.error('Error placing bid:', error);
+            });
+        });
+
+        // Log out functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            window.location.href = 'index.html';  // Redirect to login page
+        });
+    </script>
+</body>
+</html>

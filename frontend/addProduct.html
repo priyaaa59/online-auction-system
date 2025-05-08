@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Product - Auction System</title>
+</head>
+<body>
+  <h2>Add Product</h2>
+
+  <input id="productTitle" placeholder="Title" /><br><br>
+  <input id="productDescription" placeholder="Description" /><br><br>
+  <input id="productPrice" type="number" placeholder="Starting Price" /><br><br>
+  <input id="productEndTime" type="datetime-local" /><br><br>
+  <!-- User ID is automatically retrieved from localStorage, no need for input field -->
+  <button id="addProductBtn">Add Product</button>
+
+  <script>
+    // Retrieve the user ID from localStorage
+    const user_id = parseInt(localStorage.getItem('userId'));
+
+    // Check if user_id exists
+    if (!user_id) {
+      alert('You must be logged in to add a product.');
+      window.location.href = 'login.html'; // Redirect to login page if not logged in
+    }
+
+    document.getElementById('addProductBtn').addEventListener('click', async () => {
+      const title = document.getElementById('productTitle').value;
+      const description = document.getElementById('productDescription').value;
+      const starting_price = parseFloat(document.getElementById('productPrice').value);
+      const end_time = document.getElementById('productEndTime').value;
+
+      // Get user_id from localStorage (already handled above)
+      const user_id = parseInt(localStorage.getItem('userId'));
+
+      const response = await fetch('http://localhost:5002/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, starting_price, end_time, user_id }),
+      });
+
+      const data = await response.json();
+      alert(data.message || data.error || "Product added successfully!");
+    });
+  </script>
+</body>
+</html>

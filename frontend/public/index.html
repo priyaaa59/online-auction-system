@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auction System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('your-background-image.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      color: white;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+
+    .logo {
+      width: 150px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .toggle-btn {
+      text-align: center;
+      margin-top: 10px;
+      color: lightgray;
+    }
+
+    .toggle-btn a {
+      color: lightblue;
+      cursor: pointer;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Register Section -->
+  <div class="container" id="registerContainer">
+    <img src="logo192.png" alt="Auction System Logo" class="logo">
+    <h2>Register</h2>
+    <input id="username" placeholder="Username" /><br>
+    <input id="email" placeholder="Email" /><br>
+    <input id="password" type="password" placeholder="Password" /><br>
+    <button id="registerBtn">Register</button>
+    <div class="toggle-btn">
+      <span>Already have an account? <a href="#" id="loginLink">Login</a></span>
+    </div>
+  </div>
+
+  <!-- Login Section -->
+  <div class="container" id="loginContainer" style="display:none;">
+    <img src="your-logo.png" alt="Auction System Logo" class="logo">
+    <h2>Login</h2>
+    <input id="loginUsername" placeholder="Username" /><br>
+    <input id="loginPassword" type="password" placeholder="Password" /><br>
+    <button id="loginBtn">Login</button>
+    <div class="toggle-btn">
+      <span>Don't have an account? <a href="#" id="registerLink">Register</a></span>
+    </div>
+  </div>
+
+  <script>
+    // Switch between login and register forms
+    document.getElementById('loginLink').addEventListener('click', () => {
+      document.getElementById('registerContainer').style.display = 'none';
+      document.getElementById('loginContainer').style.display = 'block';
+    });
+
+    document.getElementById('registerLink').addEventListener('click', () => {
+      document.getElementById('loginContainer').style.display = 'none';
+      document.getElementById('registerContainer').style.display = 'block';
+    });
+
+    // Register logic
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!username || !email || !password) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const response = await fetch('http://localhost:5002/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+      alert(data.message || data.error || 'Registration successful');
+      if (data.message === 'User registered') {
+        // Optionally, you can auto-switch to the login page here:
+        document.getElementById('registerContainer').style.display = 'none';
+        document.getElementById('loginContainer').style.display = 'block';
+      }
+    });
+
+    // Login logic
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      // Check if username and password are entered
+      if (!username || !password) {
+        alert("Please enter both username and password.");
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5002/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        console.log('Login response:', data);  // Add this line for debugging
+
+        // Check if login is successful and token exists
+        if (data.token && data.userId) {
+          // Store the token and userId in localStorage
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userId', data.userId);  // Assuming userId is part of the response
+
+          // Redirect to auction page
+          window.location.href = 'auction.html';
+        } else {
+          alert(data.message || 'Login failed');
+        }
+      } catch (error) {
+        console.error('Error during login:', error);
+        alert('An error occurred during login.');
+      }
+    });
+
+  </script>
+
+</body>
+</html>
