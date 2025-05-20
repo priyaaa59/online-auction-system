@@ -17,7 +17,7 @@ The **Online Auction System** is a full-stack web application that allows users 
 
 - **Frontend**: React.js, HTML, CSS, Bootstrap/Tailwind CSS
 - **Backend**: Node.js, Express.js
-- **Database**: MySQL
+- **Database**: mongoDB+ flask
 - **Authentication**: JWT (JSON Web Tokens)
 - **Deployment**: [Heroku/AWS](Replace with deployment platform if any)
 
